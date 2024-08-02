@@ -1,6 +1,6 @@
 # Web Security
 
-Examples and exercises for [the Web Security course for Frontend Masters](https://frontendmasters.com/workshops/web-security).
+Examples and exercises for [the Web Security course for Frontend Masters](https://frontendmasters.com/courses/web-security-v2/).
 
 ## Running the exercises:
 
