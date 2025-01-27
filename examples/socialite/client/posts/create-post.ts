@@ -1,8 +1,10 @@
 import { html, LitElement } from 'lit';
-import { customElement } from 'lit/decorators.js';
+import { customElement, property } from 'lit/decorators.js';
 
 @customElement('create-post')
 export class CreatePost extends LitElement {
+  @property({ type: String }) token: string = '';
+
   protected createRenderRoot() {
     return this;
   }
@@ -24,6 +26,7 @@ export class CreatePost extends LitElement {
             maxlength="140"
             required
           />
+          <input type="hidden" name="_csrf" value=${this.token} />
         </div>
 
         <button type="submit" class="lg:max-w-fit button-small">Post</button>

@@ -1,6 +1,6 @@
 <div class="container max-w-2xl space-y-8">
   {{#if user}}
-    <create-post></create-post>
+    <create-post token="{{token}}"></create-post>
   {{/if}}
 
   <socialite-posts

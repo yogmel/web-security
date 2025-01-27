@@ -1,4 +1,6 @@
 import { startServer, createServer } from '#shared';
+import crypto from 'crypto';
+import { v4 as uuid } from 'uuid';
 
 import { db } from './database.js';
 
@@ -16,7 +18,7 @@ const app = createServer({ viewEngine: 'handlebars' });
 app.use(currentUser);
 app.use(methodOverride);
 
-app.get('/', async (req, res) => {
+app.get('/', authenticate, async (req, res) => {
   const limit = req.query.limit || 50;
 
   const posts = await db.all(
@@ -24,7 +26,12 @@ app.get('/', async (req, res) => {
     [limit]
   );
 
-  res.render('posts', { title: 'Home', posts });
+  const { token } = await db.get(
+    'SELECT token FROM sessions WHERE userId = ?',
+    req.user.id
+  );
+
+  res.render('posts', { title: 'Home', posts, token });
 });
 
 app.get('/login', async (req, res) => {
@@ -43,6 +50,9 @@ app.get('/profile', authenticate, async (req, res) => {
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
+  const sessionId = crypto.randomBytes(16).toString('hex');
+  const token = uuid();
+
   const user = await db.get(
     'SELECT * FROM users WHERE username = ? AND password = ?',
     [username, password]
@@ -53,6 +63,13 @@ app.post('/login', async (req, res) => {
       .status(400)
       .render('login', { error: 'Invalid login credentials.' });
   }
+
+  try {
+    await db.run(
+      `INSERT INTO sessions (sessionId, userId, token) VALUES (?, ?, ?)`,
+      [sessionId, user.id, token]
+    );
+  } catch {}
 
   res.cookie('sessionId', user.id);
   res.redirect('/');
@@ -136,7 +153,16 @@ app.get('/posts', async (req, res) => {
 
 // Create post
 app.post('/posts', authenticate, async (req, res) => {
-  const { content } = req.body;
+  const { content, _csrf } = req.body;
+
+  const { token } = await db.get(
+    'SELECT token FROM sessions WHERE userId = ?',
+    req.user.id
+  );
+
+  if (token !== _csrf) {
+    return res.status(403).send('Unauthorized');
+  }
 
   const { lastID } = await db.run(
     'INSERT INTO posts (userId, content) VALUES (?, ?)',
@@ -206,6 +232,10 @@ app.get('/update-status', authenticate, async (req, res) => {
   ]);
 
   res.sendStatus(204);
+});
+
+app.get('/evil', async (req, res) => {
+  res.render('malicious', { title: 'Malicious', port: process.env.PORT });
 });
 
 startServer(app);
