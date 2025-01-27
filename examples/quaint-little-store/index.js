@@ -47,7 +47,8 @@ app.post('/login', async (req, res) => {
   const password = req.body.password;
 
   const user = await db.get(
-    `SELECT * FROM users WHERE email = '${email}' AND password = '${password}'`
+    `SELECT * FROM users WHERE email = ? AND password = ?`,
+    [email, password]
   );
 
   if (user) {
